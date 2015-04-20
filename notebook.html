@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+
+<html>
+
+ <head>
+<!--_docPropBegin-->
+<meta charset="utf-8">
+<!-- «©» — utf-8 encoding force (for old editors)-->
+<meta name="generator" content="notebook.html">
+
+<title>notebook.html</title>
+<meta name="author" content="Alexander Krassotkin">
+<meta name="revision" content="201504102222">
+
+<!-- 
+Examples of document properties. 
+Copy any over the comment and fill or freely change exists (public domain for source) or add your own:
+
+<meta name="description" content="type your description here">
+<meta name="keywords" content="type your keywords here">
+
+See also: https://wiki.whatwg.org/wiki/MetaExtensions 
+-->
+
+<!--
+Items script, style and link are added to the relevant section.
+Right click and see there "View >> Document Script" or "View >> Document Style" etc.
+--><!--_docPropEnd-->
+
+
+
+<!--_docScriptBegin-->
+<!--You can freely add or remove script sections using html markup.-->
+<script id="_docScript">
+/** 
+  * Type here your document script.
+  * It runned after save and reopen (reload if you save with the same name).
+  */
+</script><!--_docScriptEnd-->
+
+
+
+<!--_docStyleBegin-->
+<!-- You can freely add or remove style sections using html markup. -->
+
+<style id="_docStyle">
+/** 
+  * Type here your document style.
+  */
+</style><!--_docStyleEnd-->
+
+
+
+<!--_addonsBegin-->
+<!-- You can freely add or remove addons scritpt and style sections using html markup. --><!--_addonsEnd-->
+
+
+
+<!--_sysStyleBegin-->
+<style id="_sysStyle">
+ body, #_container {
+  border:0;
+  font-size:100%;
+  margin:0;
+  outline:0;
+  padding:0;
+  vertical-align:top;
+ }
+ #_container {
+  padding:5px;
+ }
+ a { 
+  target-new:tab; 
+ }
+</style><!--_sysStyleEnd-->
+
+
+
+<!--_sysScriptBegin-->
+<script id="_sysScriptPart1">// Separate, because my editor has bad highlighting.
+function _hackEscape(_c) {return _c.replace(/<br><\/li>/g, "<\/li>");}
+
+function _htmlToTxt(_c) {return _c.replace(/<br>/g, "\n").replace(/<br\/>/g, "\n").replace(/<br \/>/g, "\n").replace(/<[^>]*>/g, "");}
+
+function _htmlEscape(_c) {return _c.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\>/g, "&gt;").replace(/ /g, "&nbsp;").replace(/\n/g, "<br>");}
+
+function _htmlUnescape(_c) {return _hackEscape(_c.replace(/<br>/g, "\n").replace(/<br\/>/g, "\n").replace(/<br \/>/g, "\n").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&"));}
+
+function _removeLongBrTemplate(_c) {
+ var _longBrTmp = document.getElementById("_longBrTmp").innerHTML;
+ var _re = new RegExp(_longBrTmp,"g");
+ return _c.replace(_re, "");
+} 
+</script>
+
+
+
+<script id="_sysScriptPart2">
+function _clear() {
+ document.getElementById("_container").innerHTML = document.getElementById("_longBrTmp").innerHTML;
+}
+
+
+// Hack for stoping editable after saving bug in Firefox
+var _editableMustBeFixed = false, _editableMustBeFixedPass = 0;
+function _fixEditable() {
+ if(!_editableMustBeFixed) return;
+ console.log("_editableMustBeFixed! Pass="+_editableMustBeFixedPass);
+ _editableMustBeFixedPass++;
+ if(_editableMustBeFixedPass < 2) return;
+ _editableMustBeFixed = false;
+ _editableMustBeFixedPass = 0;
+ document.body.removeEventListener("click", _fixEditable);
+ var _containerElement = document.getElementById("_container");
+ var currentContent = _containerElement.innerHTML;
+ var _parentContainerElement = document.getElementById("_parentContainer");
+ _parentContainerElement.removeChild(_containerElement);
+ _parentContainerElement.innerHTML = "<div id=\"_container\" contenteditable=\"true\">"+currentContent+"</div>";
+ document.body.removeEventListener("click", _fixEditable);
+ _editableOn();
+}
+// end hack
+
+
+function _editableOff() {
+ document.getElementById("_container").removeAttribute("contenteditable");
+ document.getElementById("_container").innerHTML = _removeLongBrTemplate(document.getElementById("_container").innerHTML);
+ document.getElementById("_editableOnMenuItem").removeAttribute("hidden");
+ document.getElementById("_editableOffMenuItem").setAttribute("hidden", "");
+ document.getElementById("_docEditable").innerHTML="off";
+}
+
+
+function _editableOn() {
+ document.getElementById("_container").setAttribute("contenteditable", "true");
+ document.getElementById("_container").innerHTML = _removeLongBrTemplate(document.getElementById("_container").innerHTML)+document.getElementById("_longBrTmp").innerHTML;
+ document.getElementById("_editableOffMenuItem").removeAttribute("hidden");
+ document.getElementById("_editableOnMenuItem").setAttribute("hidden", "");
+ document.getElementById("_docEditable").innerHTML="on";
+}
+
+
+function _getPartOf(_section, _part, _d) {
+ console.log("_getPartOf: _d="+_d);
+ console.log("_getPartOf: document="+document);
+ var _doc = _d ? _d : document;
+ console.log("_getPartOf: _doc="+_doc);
+ var _sectionContent = (_section == "head") ? _doc.head.innerHTML : _doc.body.innerHTML;
+ var _partPrefix = "<!--"+ _part;
+ var _partBeginLabel = _partPrefix+"Begin-->";
+ var _partEndLabel = _partPrefix+"End-->";
+ var _partBeginIndex = _sectionContent.indexOf(_partBeginLabel)+_partBeginLabel.length;
+ var _partLength = _sectionContent.indexOf(_partEndLabel)-_partBeginIndex;
+ return _sectionContent.substr(_partBeginIndex, _partLength); 
+}
+
+
+function _keepChanges(_goalView) {
+ var _currentViewName = document.getElementById("_docView").innerHTML;
+ console.log("_keepChanges: _currentViewName="+_currentViewName+"; _goalView="+_goalView);
+ if(_currentViewName == _goalView) return _currentViewName;
+ var _currentContent = _removeLongBrTemplate(document.getElementById("_container").innerHTML).trim();
+ if(_currentViewName == "body") { 
+  document.body.innerHTML = "";
+  document.body.removeAttribute("contextmenu"); // <body contextmenu="_mycontextmenu">
+  var _ds = "<!DOCTYPE html><html><head></head><body>"+_htmlUnescape(_currentContent).trim()+"</body></html>";
+  var _parser = new DOMParser();
+  var _doc = _parser.parseFromString(_ds, "text/html");
+  var _docBodyChildren = _doc.body.childNodes;
+  for(var _ci=0;_ci<_docBodyChildren.length;++_ci) {
+   document.body.appendChild(_docBodyChildren[_ci].cloneNode(true));
+  }
+  document.body.setAttribute("contextmenu", "_mycontextmenu");
+  _onLoad(null); // only this string needed
+ } else if(_currentViewName == "head") { 
+  document.head.innerHTML = _htmlUnescape(_currentContent).trim();
+ } else if(_currentViewName == "preferences") {  
+ } else if(_currentViewName == "properties") {
+  _setPartOf("head", "_docProp", _htmlUnescape(_currentContent).trim());
+ } else if(_currentViewName == "raw") {
+  if(_goalView != "wysiwyg")
+   document.getElementById("_storedEditionWysiwygMode").innerHTML = _htmlUnescape(_currentContent).trim();
+ } else if(_currentViewName == "script") {
+  _setPartOf("head", "_docScript", _htmlUnescape(_currentContent).trim());
+ } else if(_currentViewName == "style") {
+  _setPartOf("head", "_docStyle", _htmlUnescape(_currentContent).trim());
+ } else if(_currentViewName == "text") {
+  document.getElementById("_storedEditionWysiwygMode").innerHTML = _currentContent;
+  console.log("text saved");
+ } else if(_currentViewName == "wysiwyg") {
+  if(_goalView != "raw")
+   document.getElementById("_storedEditionWysiwygMode").innerHTML = _currentContent;
+ }
+ return _currentViewName;
+}
+
+
+function _newDoc(_t) {
+ _toPrefView(null, function(){_newDocPrepare(_t);}, _t);
+}
+
+
+function _newDocPrepare(_t) {
+ console.log("_newDocPrepare: _t = "+_t);
+ if(_t=="template") {
+  _setPartOf("head", "_docProp", _htmlUnescape(document.getElementById("_htmlDocPropTmp").innerHTML));
+  _setPartOf("head", "_docScript", _htmlUnescape(_getPartOf("body", "_htmlDocScriptTmp")));
+  _setPartOf("head", "_docStyle", _htmlUnescape(_getPartOf("body", "_htmlDocStyleTmp")));
+  document.getElementById("_container").innerHTML = _htmlUnescape(_getPartOf("body", "_htmlDocContentTmp"))+document.getElementById("_longBrTmp").innerHTML;
+ } else if(_t=="empty" || _t=="text") {
+  _setPartOf("head", "_docProp", _htmlUnescape(document.getElementById("_htmlDocPropEmptyTmp").innerHTML));
+  _setPartOf("head", "_docScript", "");
+  _setPartOf("head", "_docStyle", "");
+  document.getElementById("_container").innerHTML = document.getElementById("_longBrTmp").innerHTML;
+ }
+ document.title = document.getElementById("_docSavedTitle").innerHTML;
+ console.log("_newDocPrepare: document.title = "+document.title);
+ document.getElementById("_storedEditionWysiwygMode").innerHTML = "";
+ if(_t=="text") {
+  document.getElementById("_docType").innerHTML = "txt";
+  _updateContextMenu("text");
+ } else {
+  document.getElementById("_docType").innerHTML = "html";
+  _updateContextMenu("wysiwyg");
+ };
+}
+
+
+function _onLoad(_event) {
+ document.getElementById("_aboutMenuItem").addEventListener("click", _toAboutView);
+ document.getElementById("_clearMenuItem").addEventListener("click", _clear);
+ document.getElementById("_editableOffMenuItem").addEventListener("click", _editableOff);
+ document.getElementById("_editableOnMenuItem").addEventListener("click", _editableOn);
+ document.getElementById("_newDocMenuItem").addEventListener("click",function(){_newDoc("empty");});
+ document.getElementById("_newDocTemplateMenuItem").addEventListener("click",function(){_newDoc("template");});
+ document.getElementById("_newTextMenuItem").addEventListener("click",function(){_newDoc("text");});
+ document.getElementById("_openHtmlMenuItem").addEventListener("click",function(){_open("html");});
+ document.getElementById("_openNotebookMenuItem").addEventListener("click",function(){_open("notebook");});
+ document.getElementById("_openTextMenuItem").addEventListener("click", function() {_open("text");});
+ document.getElementById("_restartMenuItem").addEventListener("click", function() {_editableMustBeFixed=true,_editableMustBeFixedPass=2;_fixEditable();});
+ document.getElementById("_saveHtmlMenuItem").addEventListener("click", _saveHtml);
+ document.getElementById("_saveNotebookMenuItem").addEventListener("click", _saveNotebook);
+ document.getElementById("_saveTextMenuItem").addEventListener("click", _saveText);
+ document.getElementById("_viewBodyMenuItem").addEventListener("click", _toBodyView);
+ document.getElementById("_viewHeadMenuItem").addEventListener("click", _toHeadView);
+ document.getElementById("_viewPrefMenuItem").addEventListener("click", _toPrefView); 
+ document.getElementById("_viewDocMenuItem").addEventListener("click", _toTextView);
+ document.getElementById("_viewDocPropMenuItem").addEventListener("click", _toPropView);
+ document.getElementById("_viewDocRawMenuItem").addEventListener("click", _toRawView);
+ document.getElementById("_viewStyleMenuItem").addEventListener("click", _toStyleView);
+ document.getElementById("_viewScriptMenuItem").addEventListener("click", _toScriptView);
+ document.getElementById("_viewWysiwygMenuItem").addEventListener("click", _toWysiwygView);
+ 
+ // Preload _aboutTmp
+ var _currentViewName = document.getElementById("_docView").innerHTML;
+ if(_currentViewName == "aboutwysiwyg") {
+  document.getElementById("_container").innerHTML = document.getElementById("_aboutTmp").innerHTML.replace(/_tmp/g, "First") + document.getElementById("_longBrTmp").innerHTML;
+  _updateContextMenu("aboutwysiwyg");
+ };
+}
+
+
+function _open(_t) {
+ console.log("_open: _t="+_t);
+ var _inputFileOpen = document.getElementById("_fileForOpen");
+ _inputFileOpen.onchange = function(_e) {_openReader(_e, _t);};
+ var _event = new MouseEvent("click", {"view": window, "bubbles": true,"cancelable": true}); 
+ _inputFileOpen.dispatchEvent(_event);
+}
+
+
+function _openReader(_e, _t) {
+ console.log("_openReader: _t="+_t);
+ var _input = _e.target;
+ console.log("_openProcess: _input.files[0]="+_input.files[0].name);
+ document.getElementById("_docFileName").innerHTML = _input.files[0].name;
+ var _reader = new FileReader();
+ _reader.onerror = function(){_openProcess(_e, _reader, _t);}
+ _reader.onload = function(){_openProcess(_e, _reader, _t);}
+ _reader.readAsText(_input.files[0]);
+}
+
+
+function _openProcess(_e, _reader, _t) {
+ console.log("_openProcess: _t="+_t);
+ var _fileContent = _reader.result;
+ if(_t=="html") {
+  var _parser = new DOMParser();
+  var _doc = _parser.parseFromString(_fileContent, "text/html");
+  /*Parse head begin*/
+  var _emptyHtmlString = "<!DOCTYPE html><html><head></head><body></body></html>";
+  var _docProp = _parser.parseFromString(_emptyHtmlString, "text/html");
+  var _docScript = _parser.parseFromString(_emptyHtmlString, "text/html");
+  var _docStyle = _parser.parseFromString(_emptyHtmlString, "text/html");
+  var _docTmp = _parser.parseFromString(_emptyHtmlString, "text/html");
+  //console.log("_openProcess: _doc.head.innerHTHML="+_doc.head.innerHTHML);
+  var _docHeadChildren = _doc.head.childNodes;
+  for(var _ci=0;_ci<_docHeadChildren.length;++_ci) {
+   _docTmp.head.appendChild(_docHeadChildren[_ci].cloneNode(true));
+   var _tt = _docHeadChildren[_ci].nodeType;
+   if(_tt==1) {
+    var _nn = _docHeadChildren[_ci].nodeName.toLowerCase();
+    //console.log("_openProcess: _tt="+_tt+"; _nn="+_nn);
+    if(_nn == "base" || _nn == "meta" || _nn == "title") {
+     _docProp.head.innerHTML += _docTmp.head.innerHTML;
+    } else if(_nn == "link" || _nn == "style") {
+     _docStyle.head.innerHTML += _docTmp.head.innerHTML;
+    } else if(_nn == "script") {
+     _docScript.head.innerHTML += _docTmp.head.innerHTML;
+    } else {
+     _docProp.head.innerHTML += _docTmp.head.innerHTML;
+    }
+    _docTmp = _parser.parseFromString(_emptyHtmlString, "text/html");
+   }
+  }
+  /*Parse head end*/
+  var _foundTitle = _docProp.title;
+  console.log("_openProcess: _foundTitle="+_foundTitle);
+  if(!_foundTitle || _foundTitle.length<1) {
+   _docProp.head.innerHTML = "<title>"+document.getElementById("_docFileName").innerHTML+"</title>\n"+_docProp.head.innerHTML.trim();
+  }
+  _setPartOf("head", "_docProp", _docProp.head.innerHTML.trim());
+  _setPartOf("head", "_docScript", _docScript.head.innerHTML.trim());
+  _setPartOf("head", "_docStyle", _docStyle.head.innerHTML.trim());
+  document.getElementById("_container").innerHTML = _doc.body.innerHTML+document.getElementById("_longBrTmp").innerHTML;
+  document.getElementById("_storedEditionWysiwygMode").innerHTML = "";
+  document.getElementById("_docType").innerHTML = "html";
+  _updateContextMenu("wysiwyg");
+ } else if(_t=="notebook") {
+  var _parser = new DOMParser();
+  var _doc = _parser.parseFromString(_fileContent, "text/html");
+  _setPartOf("head", "_docProp", _getPartOf("head", "_docProp", _doc));
+  document.getElementById("_environment").innerHTML = _doc.getElementById("_environment").innerHTML;
+  _setPartOf("head", "_docScript", _getPartOf("head", "_docScript", _doc));
+  _setPartOf("head", "_docStyle", _getPartOf("head", "_docStyle", _doc));
+  document.getElementById("_container").innerHTML = _doc.getElementById("_container").innerHTML;
+  document.getElementById("_storedEditionWysiwygMode").innerHTML = _doc.getElementById("_storedEditionWysiwygMode").innerHTML;
+  _updateContextMenu(document.getElementById("_docView").innerHTML);
+  var _editable = _doc.getElementById("_docEditable").innerHTML;
+  _editable=="on" ? _editableOn() : _editableOff();
+ } else if(_t=="text") {
+  _setPartOf("head", "_docProp", _htmlUnescape(document.getElementById("_htmlDocPropEmptyTmp").innerHTML));
+  document.title = document.getElementById("_docFileName").innerHTML;
+  _setPartOf("head", "_docScript", "");
+  _setPartOf("head", "_docStyle", "");
+  document.getElementById("_container").innerHTML = _htmlEscape(_reader.result)+document.getElementById("_longBrTmp").innerHTML;
+  document.getElementById("_docType").innerHTML = "txt";
+  document.getElementById("_storedEditionWysiwygMode").innerHTML = "";
+  _updateContextMenu("text");
+ }
+}
+
+
+function _openError(_e, _reader, _t) {
+ console.log("_openError: _t="+_t);
+}
+
+
+function _save(_fileName, _fileContent) {
+ var _bl = new Blob([_fileContent], {type: "text/html"});
+ var _a = document.createElement("a");
+ _a.href = URL.createObjectURL(_bl);
+ _a.download = _fileName;
+ 
+ var _event = new MouseEvent("click", {"view": window, "bubbles": true,"cancelable": true}); 
+ _a.dispatchEvent(_event);
+ 
+ document.body.addEventListener("click", _fixEditable); //hack
+ _editableMustBeFixed = true; //
+}
+
+
+function _saveNotebook() {
+ var _fileContent = "<!DOCTYPE html>\n<html>\n\n <head>\n\n"+document.head.innerHTML.trim()+"\n </head>\n\n <body contextmenu=\"_mycontextmenu\">\n"+document.body.innerHTML.trim()+"\n\n </body>\n\n</html>\n\n";
+ var _fileName = document.getElementById("_docFileName").innerHTML;
+ var _currentType = document.getElementById("_docType").innerHTML;
+ console.log("_saveNotebook: _currentType="+_currentType);
+ if(_currentType=="txt" && _fileName.indexOf(".html")!=(_fileName.length-5)) {_fileName += ".html";}
+ _save(_fileName, _fileContent);
+}
+
+
+function _saveHtml() {
+ var _prop = _getPartOf("head", "_docProp");
+ var _scipt = _getPartOf("head", "_docScript");
+ var _style = _getPartOf("head", "_docStyle");
+ var _currentType = document.getElementById("_docType").innerHTML;
+ var _currentView = document.getElementById("_docView").innerHTML;
+ console.log("_saveText: _currentType="+_currentType+"; _currentView="+_currentView);
+ var _content = "";
+ if (_currentView=="wysiwyg" || _currentView=="text") {
+  _content = _removeLongBrTemplate(document.getElementById("_container").innerHTML);
+ } else if (_currentView=="raw") {
+  _content = _htmlUnescape(_removeLongBrTemplate(document.getElementById("_container").innerHTML));
+ } else {
+  _content = _removeLongBrTemplate(document.getElementById("_storedEditionWysiwygMode").innerHTML);
+ }
+ var _fileContent = "<!DOCTYPE html>\n<html>\n\n <head>\n"+_prop.trim()+"\n"+_scipt+"\n"+_style+"\n </head>\n\n <body>\n"+_content.trim()+"\n\n </body>\n\n</html>\n\n";
+ var _fileName = document.getElementById("_docFileName").innerHTML;
+ var _currentType = document.getElementById("_docType").innerHTML;
+ console.log("_saveNotebook: _currentType="+_currentType);
+ if(_currentType=="txt" && _fileName.indexOf(".html")!=(_fileName.length-5)) {_fileName += ".html";}
+ _save(_fileName, _fileContent);
+}
+
+
+function _saveText() {
+ var _fileContent = "";
+ var _currentType = document.getElementById("_docType").innerHTML;
+ var _currentView = document.getElementById("_docView").innerHTML;
+ console.log("_saveText: _currentType="+_currentType+"; _currentView="+_currentView);
+ if(_currentType=="txt") {
+  if(_currentView=="text") {
+  _fileContent = _htmlUnescape(_htmlToTxt(_removeLongBrTemplate(document.getElementById("_container").innerHTML)));
+  } else {
+  _fileContent = _htmlUnescape(_htmlToTxt(_removeLongBrTemplate(document.getElementById("_storedEditionWysiwygMode").innerHTML)));
+  }
+ } else {
+  if (_currentView=="wysiwyg") {
+   _fileContent = _htmlToTxt(_removeLongBrTemplate(document.getElementById("_container").innerHTML));
+  } else if (_currentView=="about" || _currentView=="preferences") {
+   _fileContent = _htmlUnescape(_htmlToTxt(_removeLongBrTemplate(document.getElementById("_storedEditionWysiwygMode").innerHTML)));
+  } else {
+   _fileContent = _htmlUnescape(_htmlToTxt(_removeLongBrTemplate(document.getElementById("_container").innerHTML)));
+  }
+ }
+ console.log("_saveText: _currentType="+_currentType);
+ var _fileName = document.getElementById("_docFileName").innerHTML;
+ if(_currentType=="html" && _fileName.indexOf(".txt")!=(_fileName.length-4)) {_fileName += ".txt";}
+ _save(_fileName, _fileContent);
+}
+
+
+function _setPartOf(_section, _part, _content) {
+ var _sectionElement = (_section == "head") ? document.head : document.body;
+ var _sectionContent = _sectionElement.innerHTML;
+ var _partPrefix = "<!--"+ _part; // -->
+ var _partBeginLabel = _partPrefix+"Begin-->";
+ var _partEndLabel = _partPrefix+"End-->";
+ var _partBeginIndex = _sectionContent.indexOf(_partBeginLabel)+_partBeginLabel.length;
+ var _partEndIndex = _sectionContent.indexOf(_partEndLabel);
+ _sectionElement.innerHTML = _sectionContent.substr(0, _partBeginIndex)+"\n"+_content+_sectionContent.substr(_partEndIndex, (_sectionContent.length-_partEndIndex));
+}
+
+
+function _toAboutView() {
+ var _currentViewName = _keepChanges("about");
+ if(_currentViewName == "about") return;
+ document.getElementById("_container").innerHTML = document.getElementById("_aboutTmpMainPart_tmp").innerHTML.replace(/_tmp/g, "");
+ _updateContextMenu("about");
+}
+
+
+function _toBodyView() {
+ var _currentViewName = _keepChanges("body");
+ if(_currentViewName == "body") return;
+ document.getElementById("_container").innerHTML = _htmlEscape(document.body.innerHTML.trim()) + document.getElementById("_longBrTmp").innerHTML;
+ _updateContextMenu("body");
+}
+
+
+function _toHeadView() {
+ var _currentViewName = _keepChanges("head");
+ if(_currentViewName == "head") return;
+ document.getElementById("_container").innerHTML = _htmlEscape(document.head.innerHTML.trim()) + document.getElementById("_longBrTmp").innerHTML;
+ _updateContextMenu("head");
+}
+
+
+function _toPrefView(e, _backFunction, _t) {
+ console.log("_toPrefView: _t="+_t+"_backFunction=+_backFunction");
+ var _currentViewName = _keepChanges("prefences");
+ if(_currentViewName == "prefences") return;
+
+ //document.getElementById("_container").setAttribute("contenteditable", "false");
+ _editableOff();
+ 
+ document.getElementById("_container").innerHTML = document.getElementById("_docPrefTmp").innerHTML.replace(/_tmp/g, "");
+
+ if (_t) { // New document
+  console.log("new document");
+  if(_t=="text") {
+   document.getElementById("_prefDocFileName").innerHTML = "notebook.txt";
+   document.getElementById("_prefDocTitleRow").setAttribute("hidden", "");
+  } else {
+   document.getElementById("_prefDocFileName").innerHTML = "notebook.html";
+   document.getElementById("_prefDocTitle").innerHTML = "notebook.html";
+  }
+ } else { // Old document
+  console.log("old document");
+  document.getElementById("_prefDocFileName").innerHTML = document.getElementById("_docFileName").innerHTML;
+  if(_t=="text") {
+   document.getElementById("_prefDocTitleRow").setAttribute("hidden", "");
+  } else {
+   document.getElementById("_prefDocTitle").innerHTML = document.title;
+  }
+ }
+
+ document.getElementById("_prefDocFileName").focus();
+ 
+ document.getElementById("_prefDocOKButton").addEventListener("click", function(e) {_updDocPref(e, _backFunction, _t);});
+ document.getElementById("_prefDocCancelButton").addEventListener("click", _toPrevView);
+
+ _updateContextMenu("preferences");
+}
+
+
+function _toPrevView() {
+ var _prevView = document.getElementById("_docPreviousView").innerHTML;
+ console.log("_toPrevView: _prevView="+_prevView);
+ if(_prevView=="about") {_toAboutView();}
+ else if(_prevView=="body") {_toBodyView();}
+ else if(_prevView=="preferences") {_toPrefView();}
+ else if(_prevView=="properties") {_toPropView();}
+ else if(_prevView=="raw") {_toRawView();}
+ else if(_prevView=="script") {_toScriptView();}
+ else if(_prevView=="style") {_toStyleView();}
+ else if(_prevView=="text") {_toTextView();}
+ else if(_prevView=="wysiwyg") {_toWysiwygView();}
+}
+
+
+function _toPropView() {
+ var _currentViewName = _keepChanges("properties");
+ if(_currentViewName == "properties") return;
+ document.getElementById("_container").innerHTML = _htmlEscape(_getPartOf("head", "_docProp").trim()) + document.getElementById("_longBrTmp").innerHTML;
+ _updateContextMenu("properties");
+}
+
+
+function _toRawView() {
+ var _currentViewName = _keepChanges("raw");
+ if(_currentViewName == "raw") return;
+ var _currentContent = _removeLongBrTemplate(document.getElementById("_container").innerHTML);
+ if(_currentViewName == "wysiwyg") {
+  document.getElementById("_container").innerHTML = _htmlEscape(_removeLongBrTemplate(document.getElementById("_container").innerHTML));
+ } else {
+  document.getElementById("_container").innerHTML = _htmlEscape(document.getElementById("_storedEditionWysiwygMode").innerHTML);
+  document.getElementById("_storedEditionWysiwygMode").innerHTML = "";
+ }
+ document.getElementById("_container").innerHTML += document.getElementById("_longBrTmp").innerHTML;
+ _updateContextMenu("raw");
+}
+
+
+function _toScriptView() {
+ var _currentViewName = _keepChanges("script");
+ if(_currentViewName == "script") return;
+ document.getElementById("_container").innerHTML = _htmlEscape(_getPartOf("head", "_docScript").trim()) + document.getElementById("_longBrTmp").innerHTML;
+ _updateContextMenu("script");
+}
+
+
+function _toStyleView() {
+ var _currentViewName = _keepChanges("style");
+ if(_currentViewName == "style") return;
+ document.getElementById("_container").innerHTML = _htmlEscape(_getPartOf("head", "_docStyle").trim()) + document.getElementById("_longBrTmp").innerHTML;
+ _updateContextMenu("style");
+}
+
+function _toTextView() {
+ var _currentViewName = _keepChanges("text");
+ if(_currentViewName == "text") return;
+ document.getElementById("_container").innerHTML = document.getElementById("_storedEditionWysiwygMode").innerHTML + document.getElementById("_longBrTmp").innerHTML;
+ _updateContextMenu("text");
+}
+
+
+function _toWysiwygView() {
+ var _currentViewName = _keepChanges("wysiwyg");
+ if(_currentViewName == "wysiwyg") return;
+ var _currentContent = _removeLongBrTemplate(document.getElementById("_container").innerHTML);
+ if(_currentViewName == "raw") {
+  document.getElementById("_container").innerHTML = _htmlUnescape(_currentContent);
+ } else {
+  document.getElementById("_container").innerHTML = document.getElementById("_storedEditionWysiwygMode").innerHTML;
+  document.getElementById("_storedEditionWysiwygMode").innerHTML = "";
+ } 
+ document.getElementById("_container").innerHTML += document.getElementById("_longBrTmp").innerHTML;
+ _updateContextMenu("wysiwyg");
+}
+
+
+function _updateContextMenu(_goalView) {
+ if(_goalView == "about"){
+  _editableOff();
+ } else if(_goalView == "preferences") {
+  // !do nothing see: toPrefView
+ } else {
+  _editableOn();
+ } 
+
+ var _docType = document.getElementById("_docType").innerHTML
+
+ document.getElementById("_aboutMenuItem").removeAttribute("hidden");
+ document.getElementById("_editMenuItem").removeAttribute("hidden");
+ document.getElementById("_highlightModeMenuItem").removeAttribute("hidden");
+ document.getElementById("_newDocMenuItem").removeAttribute("hidden");
+ document.getElementById("_newDocTemplateMenuItem").removeAttribute("hidden");
+ document.getElementById("_restartMenuItem").removeAttribute("hidden");
+ document.getElementById("_saveHtmlMenuItem").removeAttribute("hidden");
+ document.getElementById("_saveNotebookMenuItem").removeAttribute("hidden");
+ document.getElementById("_saveTextMenuItem").removeAttribute("hidden");
+ document.getElementById("_viewPrefMenuItem").removeAttribute("hidden");
+ document.getElementById("_viewBodyMenuItem").removeAttribute("hidden");
+ document.getElementById("_viewHeadMenuItem").removeAttribute("hidden");
+
+ if(_docType == "txt") {
+  document.getElementById("_viewDocMenuItem").removeAttribute("hidden");
+
+  document.getElementById("_viewDocPropMenuItem").setAttribute("hidden", "");
+  document.getElementById("_viewDocRawMenuItem").setAttribute("hidden", "");
+  document.getElementById("_viewScriptMenuItem").setAttribute("hidden", "");
+  document.getElementById("_viewStyleMenuItem").setAttribute("hidden", "");
+  document.getElementById("_viewWysiwygMenuItem").setAttribute("hidden", "");
+ } else if(_docType == "html") {
+  document.getElementById("_viewDocPropMenuItem").removeAttribute("hidden");
+  document.getElementById("_viewDocRawMenuItem").removeAttribute("hidden");
+  document.getElementById("_viewScriptMenuItem").removeAttribute("hidden");
+  document.getElementById("_viewStyleMenuItem").removeAttribute("hidden");
+  document.getElementById("_viewWysiwygMenuItem").removeAttribute("hidden");
+
+  document.getElementById("_viewDocMenuItem").setAttribute("hidden", "");
+ }
+
+ if(_goalView == "aboutwysiwyg") {
+  document.getElementById("_aboutMenuItem").setAttribute("hidden", "");
+  document.getElementById("_docView").innerHTML = "wysiwyg";
+  _goalView = "wysiwyg";
+ }
+
+ if(_goalView == "about") {
+  document.getElementById("_aboutMenuItem").setAttribute("hidden", "");
+  document.getElementById("_editMenuItem").setAttribute("hidden", "");
+ } else if(_goalView == "body") {
+  document.getElementById("_viewBodyMenuItem").setAttribute("hidden", "");
+ } else if(_goalView == "head") {
+  document.getElementById("_viewHeadMenuItem").setAttribute("hidden", "");
+ } else if(_goalView == "preferences") {
+  document.getElementById("_editMenuItem").setAttribute("hidden", "");
+  document.getElementById("_viewPrefMenuItem").setAttribute("hidden", "");
+ } else if(_goalView == "properties") {
+  document.getElementById("_viewDocPropMenuItem").setAttribute("hidden", "");
+ } else if(_goalView == "raw") {
+  document.getElementById("_viewDocRawMenuItem").setAttribute("hidden", "");
+ } else if(_goalView == "script") {
+  document.getElementById("_viewScriptMenuItem").setAttribute("hidden", "");
+ } else if(_goalView == "style") {
+  document.getElementById("_viewStyleMenuItem").setAttribute("hidden", "");
+ } else if(_goalView == "text") {
+  document.getElementById("_viewDocMenuItem").setAttribute("hidden", "");
+ } else if(_goalView == "wysiwyg") {
+  document.getElementById("_viewWysiwygMenuItem").setAttribute("hidden", "");
+ }
+ document.getElementById("_docPreviousView").innerHTML = document.getElementById("_docView").innerHTML;
+ document.getElementById("_docView").innerHTML = _goalView;
+}
+
+
+function _updDocPref(e, _backFunction, _t) {
+ console.log("_updDocPref: _t="+_t+"; _backFunction="+_backFunction);
+ document.getElementById("_prefDocCancelButton").setAttribute("disabled", "");
+ document.getElementById("_docFileName").innerHTML = _htmlToTxt(document.getElementById("_prefDocFileName").innerHTML);
+ if(_t && _t=="text") {
+  document.title = document.getElementById("_docFileName").innerHTML;
+ } else {
+  document.title = _htmlToTxt(document.getElementById("_prefDocTitle").innerHTML);
+ }
+ document.getElementById("_docSavedTitle").innerHTML = document.title;
+ console.log("_updDocPref: document.title = "+document.title);
+ console.log("_updDocPref: _docSavedTitle = "+document.getElementById("_docSavedTitle").innerHTML);
+ if(_backFunction && typeof(_backFunction) === "function") _backFunction();
+}
+
+
+window.addEventListener("load",_onLoad, false);
+</script><!--_sysScriptEnd-->
+
+ </head>
+
+
+ <body contextmenu="_mycontextmenu">
+
+  <div id="_topAlert" hidden></div>
+
+  <div id="_parentContainer"><div id="_container" contenteditable="true"></div></div>
+
+
+  <menu type="context" id="_mycontextmenu">
+   <menu label="File..." id="_createMenuItem">
+    <menu label="New As..." id="_newMenuItem">
+     <menuitem label="notebook.html (empty)" id="_newDocMenuItem"></menuitem>
+     <menuitem label="notebook.html (templates)" id="_newDocTemplateMenuItem"></menuitem>
+     <menuitem label="Text" id="_newTextMenuItem"></menuitem>
+    </menu>
+    <menu label="Open As..." id="_openMenuItem">
+     <menuitem label="Text" id="_openTextMenuItem"></menuitem>
+     <menuitem label="HTML (import)" id="_openHtmlMenuItem"></menuitem>
+     <menuitem label="notebook.html" id="_openNotebookMenuItem"></menuitem>
+    </menu>
+    <menu label="Save As..." id="_saveMenuItem">
+     <menuitem label="notebook.html" id="_saveNotebookMenuItem"></menuitem>
+     <menuitem label="HTML (export])" id="_saveHtmlMenuItem"></menuitem>
+     <menuitem label="Text (view)" id="_saveTextMenuItem" hidden></menuitem>
+    </menu>
+   </menu>
+   <menu label="View..." id="_viewMenuItem">
+    <menuitem label="WYSIWYG" id="_viewWysiwygMenuItem" hidden></menuitem>
+    <menuitem label="Document Raw (html source)" id="_viewDocRawMenuItem"></menuitem>
+    <menuitem label="Document Sript (javasript)" id="_viewScriptMenuItem"></menuitem>
+    <menuitem label="Document Style (css)" id="_viewStyleMenuItem"></menuitem>
+    <menuitem label="Document Properties (meta/head)" id="_viewDocPropMenuItem"></menuitem>
+    <menuitem label="Document" id="_viewDocMenuItem"></menuitem>
+    <menuitem label="Preferences (file name etc)" id="_viewPrefMenuItem"></menuitem>
+   </menu>
+   <menu label="Edit..." id="_editMenuItem">
+    <menu label="Editable..." id="_editableMenuItem">
+     <menuitem label="On" id="_editableOnMenuItem"></menuitem>
+     <menuitem label="Off" id="_editableOffMenuItem"></menuitem>
+     <menuitem label="Restart Edit" id="_restartMenuItem"></menuitem>
+    </menu>
+    <menuitem label="Clear" id="_clearMenuItem"></menuitem>
+    <menu label="Highlight Mode..." id="_highlightModeMenuItem">
+     <menuitem label="None (plain text)" id="_noneHighlightModeMenuItem"></menuitem>
+     <menu label="Markup..." id="_markupHighlightMenuItem" hidden>
+      <menuitem label="HTML" id="_htmlHighlightModeMenuItem"></menuitem>
+     </menu>
+     <menu label="Scripts..." id="_scriptsHighlightMenuItem" hidden>
+      <menuitem label="JavaScript" id="_javascriptHighlightModeMenuItem"></menuitem>
+     </menu>
+     <menu label="Style..." id="_styleHighlightMenuItem" hidden>
+      <menuitem label="CSS" id="_cssHighlightModeMenuItem"></menuitem>
+     </menu>
+    </menu>
+   </menu>
+   <menuitem label="About" id="_aboutMenuItem"></menuitem>
+   <menu label="System..." id="_sysMenuItem">
+    <menu label="View..." id="_sysViewMenuItem">
+     <menuitem label="Body" id="_viewBodyMenuItem"></menuitem>
+     <menuitem label="Head" id="_viewHeadMenuItem"></menuitem>
+    </menu>
+   </menu>
+  </menu>
+
+
+  <div id="_environment" hidden>
+   <div id="_bitcoin" hidden>1GJRmNmAx5TXkDXRn657qqhBmEN1KiBZis</div>
+   <div id="_docEditable" hidden>off</div>
+   <div id="_docFileName" hidden>notebook.html</div>
+   <div id="_docPreviousView" hidden>wysiwyg</div><!--as _docView-->
+   <div id="_docSavedTitle" hidden>notebook.html</div>
+   <div id="_docType" hidden>html</div><!--txt-->
+   <div id="_docView" hidden>aboutwysiwyg</div>
+   <div id="_notebookFirstVersion" hidden>201504102222</div>
+   <div id="_notebookCurrentVersion" hidden>201504201117</div>
+  </div><!--_environment-->
+
+
+  <div id="_templates" hidden>
+
+<!--_aboutTmpBegin-->
+<div id="_aboutTmp" hidden>
+ <div id="_aboutTmpMainPart_tmp">
+  <div id="_aboutTmpMainPartIntro_tmp">
+   <h1 style="text-align:center">about notebook.html</h1>
+   <p style="clear:both"><span style="font-weight:bold">notebook.html</span> is your personal magic endpoint notebook in the browser.</p>
+   <p>notebook.html is:</p>
+   <ul>
+    <li>rich and powerful active document, which you can change at any time;</li>
+    <li>a small and lightweight cross-platform text and html editor.</li>
+   </ul>
+   <p>You can:</p>
+   <ol>
+    <li>Change here anything with mouse and keyboard.</li>
+    <li>Copy and paste what you want in any point in the document.</li>
+    <li>Enjoy the spellchecking.</li>
+    <li>Save document: after click right button<sup>1</sup>, select <i>File >> Save As >> notebook.html</i> for keep your work to a local drive.</li>
+    <li>Open saved document anytime, change and save in the same or any other place as often as you like.</li>
+   </ol>
+   <p>We can not need anything more for text editing<sup>2</sup>.</p> 
+   <p>notebook.html created on April 10, 2015 by <a href="http://www.krassotkin.com/">Alexander Krassotkin</a><sup>3</sup>.</p>
+   <p>
+    <a href="http://www.krassotkin.com/">Mail me</a> if you create new features or have ideas. 
+    You can say something in public: <a href="https://www.facebook.com/krassotkin/posts/1081805585168131">Facebook</a>, <a href="https://twitter.com/krassotkin/status/586630541971214336">Twitter</a>, <a href="https://plus.google.com/+alexanderkrassotkin/posts/MEd6VHM962N">Google+</a>.
+   </p> 
+   <p>If notebook.html is useful, interesting or just fun for you say thanks with some bitcoins: <a href="bitcoin:1GJRmNmAx5TXkDXRn657qqhBmEN1KiBZis?label=notebook.html">1GJRmNmAx5TXkDXRn657qqhBmEN1KiBZis</a>.</p>
+   <p>
+    All of the original code and text in notebook.html has been dedicated to the public domain by the author.
+    Anyone is free to copy, modify, publish, use, compile, sell or distribute the original notebook.html code and text in any form for any purpose, commercial or non-commercial, and by any means.
+   </p>
+   <p>notebook.html distributed as is. You can use it at your own risk. Absolutely no warranty!</p>
+   <p>Homepage: <a href="http://www.krassotkin.com/toys/items/notebook.html/">krassotkin.com/toys/items/notebook.html/</a>.</p>
+   <p>GitHub: <a href="https://github.com/krassotkin/notebook.html">github.com/krassotkin/notebook.html</a>.</p>
+   <p>Page revisions (web archives: <a href="https://web.archive.org/web/*/http://www.krassotkin.com/toys/items/notebook.html/index.html">archive.org</a>, <a href="https://archive.today/http://www.krassotkin.com/toys/items/notebook.html/">archive.today</a>, <a href="http://www.webcitation.org/6XuCq5Huz">webcitation.org</a>):</p>
+   <ul>
+    <li><a href="http://www.krassotkin.com/toys/items/notebook.html/">201504201117 (current)</a>.</li>
+    <li><a href="http://www.krassotkin.com/toys/items/notebook.html/versions/index.201504102222.html">201504102222 (first toy)</a>.</li>
+   </ul>
+   <br>
+   <footer style="margin-bottom:2em;padding-left:2em;">
+    <hr>
+    <div><small><sup>1</sup> Now, right click menu work in modern <a href="https://www.mozilla.org/en-US/firefox/new/">Firefox</a> only. I can create hack for your favorite awful browser but not.</small></div> 
+    <div><small><sup>2</sup> This is not only <a href="http://www.krassotkin.com/toys/">a toy</a> already. But see disclaimer.</small></div> 
+    <div><small><sup>3</sup> To follow a link in editable mode use context menu (right click, <i>Open Link...</i>) or choose not editable (right click, <i>Edit >> Editable >> Off</i>).</small></div>
+   </footer>
+  </div><!--_aboutTmpMainPartIntro_tmp-->
+ </div><!--_aboutTmpMainPart_tmp-->
+ <br>
+ <div id="_aboutTempleteTypePart_tmp">
+  <hr>
+  <br>
+  <br>
+  ... Start type here! ...<br>...or anywhere you want.<br>
+ </div><!--_aboutTempleteTypePart_tmp-->
+</div><!--_aboutTmpEnd-->
+
+<div id="_htmlDocContentTmpBegin" hidden>
+<!--_htmlDocContentTmpBegin-->
+Type your content <span style="font-weight:bold">here</span>.<!--_htmlDocContentTmpEnd-->
+</div>
+
+<!--_docPrefTmpBegin-->
+<div id="_docPrefTmp" hidden>
+ <div style="background-color:#e6e6e6;padding:10px;width:97%;">
+  <h1 style="text-align:center">Document Preferences</h1>
+  <h2>General</h2>
+  <table style="">
+   <tr><td>&nbsp;</td><td>File Name:</td><td>&nbsp;</td><td contenteditable="true" id="_prefDocFileName_tmp" style="background-color:#ffffff;width:20em"></td></tr>
+   <tr id="_prefDocTitleRow_tmp"><td>&nbsp;</td><td>Document Title:</td><td>&nbsp;</td><td contenteditable="true" id="_prefDocTitle_tmp" style="background-color:#ffffff;width:20em"></td></tr>
+  </table>
+  <div style="margin-top:2em;text-align:center;"><button type="button" id="_prefDocOKButton_tmp" style="width:10em;">OK</button><button type="button" id="_prefDocCancelButton_tmp" style="width:10em;">Cancel</button></div>
+  <div style="margin-bottom:2em;">&nbsp;</div>
+ </div>
+</div><!--_docPrefTmpEnd-->
+
+<!--_htmlDocPropTmpBegin-->
+<div id="_htmlDocPropTmp" hidden>
+&nbsp;&lt;meta charset="utf-8"&gt;
+&lt;!-- «©» — utf-8 encoding force (for old editors)--&gt;
+&nbsp;&lt;meta name="generator" content="notebook.html"&gt;
+
+&nbsp;&lt;title&gt;notebook.html&lt;/title&gt;
+&nbsp;&lt;meta name="author" content="Alexander Krassotkin"&gt;
+&nbsp;&lt;meta name="revision" content="201504102222"&gt;
+
+&lt;!-- 
+Examples of document properties. 
+Copy any over the comment and fill or freely change exists (public domain for source) or add your own:
+&lt;meta name="description" content="type your description here"&gt;
+&lt;meta name="keywords" content="type your keywords here"&gt;
+See also: https://wiki.whatwg.org/wiki/MetaExtensions 
+--&gt;
+
+&lt;!--
+Items script, style and link are added to the relevant section.
+Right click and see there "View &gt;&gt; Document Script" or "View &gt;&gt; Document Style" etc.
+--&gt;
+</div><!--_htmlDocPropTmpEnd-->
+
+<!--_htmlDocPropEmptyTmpBegin-->
+<div id="_htmlDocPropEmptyTmp" hidden>
+&nbsp;&lt;meta charset="utf-8"&gt;
+&lt;!-- «©» — utf-8 encoding force (for old editors)--&gt;
+&nbsp;&lt;title&gt;&lt;/title&gt;
+</div><!--_htmlDocPropEmptyTmpEnd-->
+
+<div id="_htmlDocScriptTmp" hidden>
+<!--_htmlDocScriptTmpBegin-->
+&lt;!--You can freely add or remove script sections using html markup.--&gt;
+
+&lt;script id="_docScript"&gt;
+/** 
+&nbsp; * Type here your document script.
+&nbsp; * It runned after save and reopen (reload if you save with the same name).
+&nbsp; */
+&lt;/script&gt;<!--_htmlDocScriptTmpEnd-->
+</div>
+
+<div id="_htmlDocStyleTmp" hidden>
+<!--_htmlDocStyleTmpBegin-->
+&lt;!-- You can freely add or remove style sections using html markup. --&gt;
+
+&lt;style id="_docStyle"&gt;
+/** 
+&nbsp; * Type here your document style.
+&nbsp; */
+&lt;/style&gt;<!--_htmlDocStyleTmpEnd-->
+</div>
+
+<!--_longBrTmpBegin-->
+<div id="_longBrTmp" hidden><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br></div><!--_longBrTmpEnd-->
+
+  </div><!--_templates-->
+
+
+  <div id="_stored" hidden>
+   <div id="_storedEditionWysiwygMode" hidden></div>
+  </div><!--_storedEdition-->
+
+  <div id="_servo" hidden>
+   <div id="_servoForOpenFile" hidden><input type="file" id="_fileForOpen" hidden></div>
+  </div>
+
+ </body>
+
+</html>
+
